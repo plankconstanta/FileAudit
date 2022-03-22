@@ -1,0 +1,1 @@
+{"version":1,"defects":{"Warning":6,"FileLineRecordTest::testCreateRecord":3,"FileLineRecordTest::testAddRecord":3,"DirectoryAuditTest::testListDirectory":4},"times":{"Warning":0,"FileLineRecordTest::testCreateRecord":0,"FileLineRecordTest::testAddRecord":0,"FileLineRecordTest::testCountRecord":0,"DirectoryAuditTest::testListDirectory":0.001}}
