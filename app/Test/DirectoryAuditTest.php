@@ -7,11 +7,8 @@ class DirectoryAuditTest extends TestCase
 {
     public function testListDirectory()
     {
-        $dirname = 'test_directory_audit';
-
-        mkdir($dirname);
+        $dirname = 'test/test';
         $list = scandir($dirname);
-        rmdir($dirname);
 
         $sut = new DirectoryAudit();
         $this->assertSame(count($list) - 2, count($sut->getListFileNames($dirname)));

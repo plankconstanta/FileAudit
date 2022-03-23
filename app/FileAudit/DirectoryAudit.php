@@ -8,6 +8,10 @@ class DirectoryAudit implements DirectoryAuditable {
     }
 
     public function getListFileNames(string $directoryName, string $fileTemplate = '') {
+        if (!is_dir($directoryName)) {
+            mkdir($directoryName);
+            //throw new \Exception('Directory ' . $directoryName . ' does not exist');
+        }
         $list = scandir($directoryName, SCANDIR_SORT_ASCENDING);
         foreach($list as $key=>$name) {
             if (in_array($name, ['.', '..'])) {

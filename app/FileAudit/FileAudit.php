@@ -24,15 +24,15 @@ class FileAudit implements FileAuditable {
         $list = $directoryManager->getListFileNames($directoryName, $fileNameTemplate);
 
         if (empty($list)) {
-            $filename = $this->getFullFileName($index);
+            $filename = $this->getFullFileName($directoryName, $index, $fileNameTemplate);
             $directoryManager->createFile($filename);
         } else {
-            $index = $this->getLastFileIndex($list);
-            $filename = $this->getFullFileName($index);
+            $index = $this->getLastFileIndex($list, $fileNameTemplate);
+            $filename = $this->getFullFileName($directoryName, $index, $fileNameTemplate);
             $content = $directoryManager->getFileContent($filename);
             if ($contentMaker->getCountRecord($content) >= $maxRecordInFile) {
                 $index++;
-                $filename = $this->getFullFileName($index);
+                $filename = $this->getFullFileName($directoryName, $index, $fileNameTemplate);
                 $directoryManager->createFile($filename);
             }
         }
@@ -51,8 +51,8 @@ class FileAudit implements FileAuditable {
         return $max;
     }
 
-    public function getFullFileName(int $index, string $fileNameTemplate): string {
-        return  $this->directoryName . DIRECTORY_SEPARATOR. str_replace(self::TEMPLATE_SIGN, $index, $fileNameTemplate);
+    public function getFullFileName(string $directoryName, int $index, string $fileNameTemplate): string {
+        return  $directoryName . DIRECTORY_SEPARATOR. str_replace(self::TEMPLATE_SIGN, $index, $fileNameTemplate);
     }
 }
 ?>
