@@ -1,14 +1,16 @@
 <?php
 namespace FileAudit;
 
-class FileLineRecord implements FileRecordable {
-    const RECORD_SEPARATOR = "\r\n";
+class FileTwoLineRecord implements FileRecordable {
+    const RECORD_SEPARATOR = "\r\n\r\n";
 
     //protected string $data;
     //protected string $date;
+    //protected int $cnt;
 
-    public function __construct(protected string $data, protected string $date)
+    public function __construct(protected int $cnt, protected string $data, protected string $date)
     {
+        //$this->cnt = $cnt;
         //$this->data = $data;
         //$this->date = $date;
     }
@@ -23,7 +25,7 @@ class FileLineRecord implements FileRecordable {
     }
 
     public function createRecord(): string {
-        return $this->data . ';' . $this->date;
+        return $this->cnt . ';' . $this->data . ';' . $this->date;
     }
 
     public function addRecord(string $content): string {

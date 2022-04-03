@@ -4,36 +4,44 @@ namespace FileAudit;
 class FileAudit implements FileAuditable {
     const TEMPLATE_SIGN = '%';
 
-    public function __construct()
+    //protected string $fileNameTemplate;
+    //protected int $maxRecordInFile;
+    //protected DirectoryAuditable $directoryManager;
+    //protected FileRecordable $contentMaker;
+
+    public function __construct(protected string $fileNameTemplate, protected int $maxRecordInFile, protected DirectoryAuditable $directoryManager, protected FileRecordable $contentMaker)
     {
+        //$this->fileNameTemplate = $fileNameTemplate;
+        //$this->maxRecordInFile = $maxRecordInFile;
+        //$this->directoryManager = $directoryManager;
+        //$this->contentMaker = $contentMaker;
     }
 
-    public function addRecord(FileRecordable $contentMaker, string $fileNameTemplate, string $directoryName, int $maxRecordInFile, DirectoryAuditable $directoryManager)
+    public function addRecord():void
     {
-        $filename = $this->getCurrentFileOrCreate($fileNameTemplate, $directoryName, $maxRecordInFile, $directoryManager, $contentMaker);
+        $filename = $this->getCurrentFileOrCreate();
 
-        $record = $contentMaker->createRecord();
-        $content = $directoryManager->getFileContent($filename);
-        $content = $contentMaker->addRecord($content, $record);
+        $content = $this->directoryManager->getFileContent($filename);
+        $content = $this->contentMaker->addRecord($content);
 
-        $directoryManager->saveFileContent($filename, $content);
+        $this->directoryManager->saveFileContent($filename, $content);
     }
 
-    public function getCurrentFileOrCreate(string $fileNameTemplate, string $directoryName, int $maxRecordInFile, DirectoryAuditable $directoryManager, FileRecordable $contentMaker):string {
+    public function getCurrentFileOrCreate():string {
         $index = 0;
-        $list = $directoryManager->getListFileNames($directoryName, $fileNameTemplate);
+        $list = $this->directoryManager->getListFileNames($this->directoryManager->getDirectoryName(), $this->fileNameTemplate);
 
         if (empty($list)) {
-            $filename = $this->getFullFileName($directoryName, $index, $fileNameTemplate);
-            $directoryManager->createFile($filename);
+            $filename = $this->getFullFileName($this->directoryManager->getDirectoryName(), $index, $this->fileNameTemplate);
+            $this->directoryManager->createFile($filename);
         } else {
-            $index = $this->getLastFileIndex($list, $fileNameTemplate);
-            $filename = $this->getFullFileName($directoryName, $index, $fileNameTemplate);
-            $content = $directoryManager->getFileContent($filename);
-            if ($contentMaker->getCountRecord($content) >= $maxRecordInFile) {
+            $index = $this->getLastFileIndex($list, $this->fileNameTemplate);
+            $filename = $this->getFullFileName($this->directoryManager->getDirectoryName(), $index, $this->fileNameTemplate);
+            $content = $this->directoryManager->getFileContent($filename);
+            if ($this->contentMaker->getCountRecord($content) >= $this->maxRecordInFile) {
                 $index++;
-                $filename = $this->getFullFileName($directoryName, $index, $fileNameTemplate);
-                $directoryManager->createFile($filename);
+                $filename = $this->getFullFileName($this->directoryManager->getDirectoryName(), $index, $this->fileNameTemplate);
+                $this->directoryManager->createFile($filename);
             }
         }
 
