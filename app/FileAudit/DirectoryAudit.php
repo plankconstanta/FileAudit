@@ -3,11 +3,13 @@ namespace FileAudit;
 
 class DirectoryAudit implements DirectoryAuditable {
 
-    //protected string $directoryName;
+    const TEMPLATE_SIGN = '%';
 
-    public function __construct(protected string $directoryName)
+    protected $listFileNames = [];
+
+    public function __construct(protected string $directoryName, protected string $fileNameTemplate)
     {
-        //$this->directoryName = $directoryName;
+        $this->listFileNames = $this->updateListFileNames();
     }
 
     public function getDirectoryName(): string
@@ -17,29 +19,37 @@ class DirectoryAudit implements DirectoryAuditable {
 
     public function getListFileNames()
     {
-        if (!is_dir($this->directoryName)) {
-            mkdir($this->directoryName);
-            //throw new \Exception('Directory ' . $directoryName . ' does not exist');
+        return $this->listFileNames;
+    }
+
+    protected function updateListFileNames()
+    {
+        if (!file_exists($this->directoryName) || !is_dir($this->directoryName)) {
+            throw new DirectoryAuditException('Directory ' . $this->directoryName . ' does not exist');
         }
-        $list = scandir($this->directoryName, SCANDIR_SORT_ASCENDING);
-        $except = ['.', '..'];
-        foreach($list as $key=>$name) {
-            if (in_array($name, $except)) {
-                unset($list[$key]);
-            }
+        $list = [];
+        $unused = [$this->directoryName, DIRECTORY_SEPARATOR];
+        foreach(glob(str_replace(self::TEMPLATE_SIGN, '*', $this->directoryName .DIRECTORY_SEPARATOR. $this->fileNameTemplate)) as $filename) {
+            $list[] = trim(str_replace($unused,'', $filename));
         }
-        return $list;
+        $this->listFileNames = $list;
+        return $this->listFileNames;
     }
 
-    public function createFile(string $fileName): void {
-        file_put_contents($fileName, '');
+    public function getFullFileNameByIndex(int $index): string
+    {
+        $filename = $this->directoryName . DIRECTORY_SEPARATOR. str_replace(self::TEMPLATE_SIGN, $index, $this->fileNameTemplate);
+        return $filename;
     }
 
-    public function getFileContent(string $fileName):string {
-        return file_get_contents($fileName);
-    }
-
-    public function saveFileContent(string $fileName, string $content): void {
-        file_put_contents($fileName, $content);
+    public function getLastFileIndex():int
+    {
+        $parts = explode(self::TEMPLATE_SIGN, $this->fileNameTemplate);
+        $max = 0;
+        foreach($this->listFileNames as $item) {
+            $index = intval(str_replace($parts, '', $item));
+            $max = $index > $max ? $index : $max;
+        }
+        return $max;
     }
 }

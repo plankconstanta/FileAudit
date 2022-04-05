@@ -2,5 +2,5 @@
 namespace FileAudit;
 
 interface FileAuditable {
-    public function addRecord();
+    public function addRecord(string $record);
 }

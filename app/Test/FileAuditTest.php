@@ -7,60 +7,30 @@ use FileAudit\FileLineRecord;
 
 class FileAuditTest extends TestCase
 {
-    public function testGetLastFileIndex()
-    {
-        $list = [];
-        $templ = 'audit%.txt';
-        $sut = new FileAudit($templ, 3, new DirectoryAudit('test'), new FileLineRecord('test', 'test'));
-        $this->assertSame(0, $sut->getLastFileIndex($list, $templ));
-
-        $list = ['tets', 'rsnh'];
-        $this->assertSame(0, $sut->getLastFileIndex($list, $templ));
-
-        $list = ['audit5.txt', 'audit1.txt', 'audit4.txt'];
-        $this->assertSame(5, $sut->getLastFileIndex($list, $templ));
-
-    }
-
-    public function test_Get_0index_file_in_empty_dir()
-    {
-        $directoryName = 'test_empty';
-        $fileNameTemplate = 'test%.txt';
-        $maxRecordInFile = 2;
-        $directoryManager = new DirectoryAudit($directoryName);
-        $contentMaker = new FileLineRecord('data', date('Y-m-d'));
-
-        $sut = new FileAudit($fileNameTemplate, $maxRecordInFile,  $directoryManager,  $contentMaker);
-        $filename = $sut->getCurrentFileOrCreate( );
-        $this->assertSame($directoryName.'/test0.txt', $filename);
-    }
-
-    public function test_Create_nextindex_file()
-    {
-        $directoryName = 'test/test_full';
-        $fileNameTemplate = 'test%.txt';
-        $maxRecordInFile = 2;
-        $directoryManager = new DirectoryAudit($directoryName);
-        $contentMaker = new FileLineRecord('data', date('Y-m-d'));
-        file_put_contents($directoryName.'/test0.txt', 'data0;'.date('Y-m-d').FileLinerecord::RECORD_SEPARATOR.'data1;'.date('Y-m-d'));
-
-        $sut = new FileAudit($fileNameTemplate,  $maxRecordInFile,  $directoryManager,  $contentMaker);
-        $filename = $sut->getCurrentFileOrCreate( );
-        $this->assertSame($directoryName.'/test1.txt', $filename);
-    }
-
     public function test_Add_record()
     {
         $date = date('Y-m-d');
         $directoryName = 'test/test_add';
         $fileNameTemplate = 'testmy%my.txt';
         $maxRecordInFile = 2;
-        $directoryManager = new DirectoryAudit($directoryName);
-        $contentMaker = new FileLineRecord('data1', $date);
-        file_put_contents($directoryName.'/testmy0my.txt', 'data0;'.$date);
+        $directoryManager = new DirectoryAudit($directoryName, $fileNameTemplate);
 
-        $sut = new FileAudit($fileNameTemplate, $maxRecordInFile,  $directoryManager, $contentMaker);
-        $sut->addRecord();
-        $this->assertSame(file_get_contents($directoryName.'/testmy0my.txt'), 'data0;'.$date.FileLinerecord::RECORD_SEPARATOR.'data1;'.$date);
+
+        $content0 = new FileLineRecord('data1', $date);
+        $record0 = $content0->createRecord();
+        $content1 = new FileLineRecord('data1', $date);
+        $record1 = $content1->createRecord();
+
+        file_put_contents($directoryName.'/testmy0my.txt', $record0);
+
+        $sut = new FileAudit($maxRecordInFile,  $directoryManager);
+        $sut->addRecord($record1);
+
+        $this->assertSame(file_get_contents($directoryName.'/testmy0my.txt'), $record0.FileAudit::RECORD_SEPARATOR.$record1);
+
+        file_put_contents($directoryName.'/testmy1my.txt', '');
+        $sut->addRecord($record1);
+        $this->assertSame(file_get_contents($directoryName.'/testmy1my.txt'), $record1);
+        @unlink($directoryName.'/testmy1my.txt');
     }
 }

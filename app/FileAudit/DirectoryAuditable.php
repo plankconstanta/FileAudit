@@ -3,7 +3,6 @@ namespace FileAudit;
 
 interface DirectoryAuditable {
     public function getListFileNames();
-    public function createFile(string $fileName);
-    public function getFileContent(string $fileName): string;
-    public function saveFileContent(string $fileName, string $content);
+    public function getLastFileIndex():int;
+    public function getFullFileNameByIndex(int $index):string;
 }
