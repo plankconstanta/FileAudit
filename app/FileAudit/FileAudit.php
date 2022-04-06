@@ -24,32 +24,16 @@ class FileAudit implements FileAuditable {
 
     public function addRecord(string $record):void
     {
-        try {
-            $locked = 0;
-            while (!$locked) {
-                if (@mkdir(self::LOCK_DIR, 0777)) {
-                    $locked = 1;
-                } else {
-                    sleep(1);
-                }
-            }
-
-            if ($this->recordCounter >= $this->maxRecordInFile) {
-                $this->fileIndex++;
-                $this->recordCounter = 0;
-            }
-            $filename = $this->directoryManager->getFullFileNameByIndex($this->fileIndex);
-            if ($this->recordCounter) {
-                $record = self::RECORD_SEPARATOR . $record;
-            }
-            $this->recordCounter++;
-            $this->addRecordToEndFile($filename, $record);
-            rmdir(self::LOCK_DIR);
-
-        } catch (\Exception $e) {
-            @rmdir(self::LOCK_DIR);
-            throw new \FileAuditException($e->getMessage());
+        if ($this->recordCounter >= $this->maxRecordInFile) {
+            $this->fileIndex++;
+            $this->recordCounter = 0;
         }
+        $filename = $this->directoryManager->getFullFileNameByIndex($this->fileIndex);
+        if ($this->recordCounter) {
+            $record = self::RECORD_SEPARATOR . $record;
+        }
+        $this->recordCounter++;
+        $this->addRecordToEndFile($filename, $record);
     }
 
     public static function getCountRecordFromContent(string $content):int
@@ -70,20 +54,35 @@ class FileAudit implements FileAuditable {
 
     public function addRecordToEndFile(string $fileName, string $content):void
     {
-        if (!($f = fopen($fileName, 'a'))) {
-            throw new \FileAuditException('File ' . $fileName . ' could not be opened');
-        }
+        try {
+            $locked = 0;
+            while (!$locked) {
+                if (@mkdir(self::LOCK_DIR, 0777)) {
+                    $locked = 1;
+                } else {
+                    sleep(1);
+                }
+            }
+            if (!($f = fopen($fileName, 'a'))) {
+                throw new \FileAuditException('File ' . $fileName . ' could not be opened');
+            }
 
-        if (flock($f, LOCK_EX)) {
-            fwrite($f, $content);
-            fflush($f);
-            flock($f, LOCK_UN);
-        } else {
-            throw new \FileAuditException('File ' . $fileName . ' could not be written');
-        }
+            if (flock($f, LOCK_EX)) {
+                fwrite($f, $content);
+                fflush($f);
+                flock($f, LOCK_UN);
+            } else {
+                throw new \FileAuditException('File ' . $fileName . ' could not be written');
+            }
 
-        if (!fclose($f)) {
-            throw new \FileAuditException('File ' . $fileName . ' could not be closed');
+            if (!fclose($f)) {
+                throw new \FileAuditException('File ' . $fileName . ' could not be closed');
+            }
+            rmdir(self::LOCK_DIR);
+
+        } catch (\Exception $e) {
+            @rmdir(self::LOCK_DIR);
+            throw new \FileAuditException($e->getMessage());
         }
     }
 

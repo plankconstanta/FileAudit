@@ -5,6 +5,9 @@ class DirectoryAudit implements DirectoryAuditable {
 
     const TEMPLATE_SIGN = '%';
 
+    /**
+     * @var string[]
+     */
     protected $listFileNames = [];
 
     public function __construct(protected string $directoryName, protected string $fileNameTemplate)
@@ -17,11 +20,17 @@ class DirectoryAudit implements DirectoryAuditable {
         return $this->directoryName;
     }
 
+    /**
+     * @return string[]
+     */
     public function getListFileNames()
     {
         return $this->listFileNames;
     }
 
+    /**
+     * @return string[]
+     */
     protected function updateListFileNames()
     {
         if (!file_exists($this->directoryName) || !is_dir($this->directoryName)) {
