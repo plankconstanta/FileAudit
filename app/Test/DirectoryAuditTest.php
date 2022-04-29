@@ -22,7 +22,7 @@ class DirectoryAuditTest extends TestCase
         $this->assertSame(21, $sut->getLastFileIndex());
     }
 
-    public function test_Get_0index_file_in_empty_dir()
+    public function test_Get_0_index_file_in_empty_dir()
     {
         $directoryName = 'test_empty';
         $fileNameTemplate = 'test%.txt';
